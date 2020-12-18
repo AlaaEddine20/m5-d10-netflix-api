@@ -1,1 +1,28 @@
-[{"imdbID":"3ee42g6uokiu6lz0m"}]
+[
+  {
+    "Title": "Scary movie",
+    "Year": 2004,
+    "Type": "comedy",
+    "IMDBID": "3ee42g71ckiubkjnd"
+  },
+  {
+    "Title": "Rocky",
+    "Year": 1976,
+    "Type": "Drammatic",
+    "IMDBID": "3ee42g1sokiuchagb"
+  },
+  {
+    "Title": "bla bla",
+    "Year": 2006,
+    "Type": "comedy",
+    "IMDBID": "3ee42g36okiued6id",
+    "reviews": [
+      {
+        "comment": "test",
+        "rate": "5",
+        "_id": "3ee42gbtokiueezwa",
+        "createdAt": "2020-12-18T14:59:23.577Z"
+      }
+    ]
+  }
+]

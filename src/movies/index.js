@@ -7,38 +7,54 @@ const { join } = require("path");
 const { getMovies, writeMovies } = require("../sfUtilities");
 
 const moviesRouter = express.Router();
-const moviesFilePath = join(__dirname, "movies.json");
-const moviesValidation = [
-  check("Title").exists().withMessage("Title of the movie is required"),
-  check("Year").exists().withMessage("Realease years is required"),
-  check("Type").exists().withMessage("Type of movie required!"),
-];
+// const moviesPath = join(__dirname, "movies.json");
 
-const reviewsValidation = [
-  check("comment").exists().withMessage("Please leave a comment"),
-  check("elementId")
-    .exists()
-    .withMessage("Provide the element id you want to review"),
-];
+moviesRouter.post(
+  "/",
+  [
+    check("Title").exists().withMessage("Title of the movie is required"),
+    check("Year").exists().withMessage("Realease years is required").isInt(),
+    check("Type").exists().withMessage("Type of movie required!"),
+  ],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
 
-moviesRouter.post("/", moviesValidation, async (req, res, next) => {
+      if (!errors.isEmpty()) {
+        const err = new Error();
+        err.message = errors;
+        err.httpStatusCode = 400;
+        next(err);
+      } else {
+        const movies = await getMovies();
+        movies.push({
+          ...req.body,
+          IMDBID: uniqid(),
+          reviews: [],
+        });
+        await writeMovies(movies);
+        res.status(200).send({ message: "Created" });
+      }
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+);
+
+moviesRouter.get("/", async (req, res, next) => {
   try {
-    const errors = moviesValidation(req);
+    const movies = await getMovies();
 
-    if (!errors.isEmpty()) {
-      const err = new Error();
-      err.message = "Fill the required fields!";
-      err.httpStatusCode = 400;
-      next(err);
+    if (req.query && req.query.category) {
+      const filteredMovies = movies.filter(
+        (movie) =>
+          movie.hasOwnProperty("category") &&
+          movie.category === req.query.category
+      );
+      res.send(filteredMovies);
     } else {
-      const movies = await getMovies();
-      const movie = {
-        ...req.body,
-        IMDBID: uniqid(),
-      };
-      movies.push(movie);
-      await writeMovies(movies);
-      res.status(200).send({ message: "Created" });
+      res.send(movies);
     }
   } catch (error) {
     console.log(error);
@@ -48,27 +64,31 @@ moviesRouter.post("/", moviesValidation, async (req, res, next) => {
 
 moviesRouter.post(
   "/:elementId/reviews",
-  reviewsValidation,
+  [
+    check("comment").exists().withMessage("Please leave a comment"),
+    check("rate").exists().withMessage("Rate us please!"),
+  ],
   async (req, res, next) => {
     try {
-      const errors = reviewsValidation(req);
+      const errors = validationResult(req);
+      const movies = await getMovies();
+      const movieFound = movies.find(
+        (movie) => movie.IMDBID === req.params.elementId
+      );
 
-      if (!errors.isEmpty()) {
-        const err = new Error();
-        err.message = "Fill the required fields!";
-        err.httpStatusCode = 400;
-        next(err);
+      if (movieFound) {
+        movies[movieFound].reviews.push({
+          ...req.body,
+          _id: uniqid(),
+          createdAt: new Date(),
+        });
+        await writeMovies(movies);
+        res.status(201).send(movies);
       } else {
-        const movies = await getMovies();
-        const movieFound = movies.find(
-          (movie) => movie.IMDBID === req.params.IMDBID
-        );
-
-        if (movieFound) {
-          res.send(movieFound.reviews);
-        } else {
-          next(err);
-        }
+        const err = new Error();
+        err.message = errors;
+        err.httpStatusCode = 404;
+        next(err);
       }
     } catch (error) {
       console.log(error);

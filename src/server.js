@@ -1,19 +1,22 @@
 const express = require("express");
 const cors = require("cors");
 const listEndpoints = require("express-list-endpoints");
-
 const moviesRoutes = require("./movies/index");
-
 const {
   notFoundHandler,
   badRequestHandler,
+  unauthorizedHandler,
   genericErrorHandler,
 } = require("./errorHandler");
-const moviesRouter = require("./movies/index");
 
 const server = express();
 
 const port = process.env.PORT || 4004;
+
+const loggerMiddleware = (req, res, next) => {
+  console.log(`Logged ${req.url} ${req.method} -- ${new Date()}`);
+  next();
+};
 
 const whiteList =
   process.env.NODE_ENV === "production"
@@ -34,10 +37,11 @@ const corsOptions =
     : {};
 
 server.use(cors(corsOptions));
-
+server.use(express.json());
 server.use("/movies", moviesRoutes);
 
 server.use(badRequestHandler);
+server.use(unauthorizedHandler);
 server.use(notFoundHandler);
 server.use(genericErrorHandler);
 
