@@ -4,14 +4,21 @@
     "year": 2021,
     "type": "movie",
     "IMDBID": "3ee42gcrwkjg62wmj",
-    "reviews": [],
-    "review": [
+    "reviews": [
       {
         "comment": "test review",
         "rate": 5,
-        "_id": "3ee42gc6kkjg66uc0",
-        "createdAt": "2021-01-02T20:40:02.063Z"
+        "_id": "3ee42gb2okjg6whj3",
+        "createdAt": "2021-01-02T20:59:58.526Z"
       }
     ]
+  },
+  {
+    "title": "test file",
+    "year": "2021",
+    "type": "test ",
+    "IMDBID": "3ee42g4f4kjg7cty2",
+    "image": "https://res.cloudinary.com/dodzuo8vr/image/upload/v1609621958/netflix-clone/ygrszbxqa8bldbb6jfqx.jpg",
+    "reviews": []
   }
 ]

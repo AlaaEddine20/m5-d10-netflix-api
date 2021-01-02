@@ -5,12 +5,7 @@ const cloudinary = require("../cloudinary");
 const { check, validationResult } = require("express-validator");
 const uniqid = require("uniqid");
 // ROUTES FROM FS UTILITIES
-const {
-  getMovies,
-  writeMovies,
-  writeReviews,
-  getReviews,
-} = require("../sfUtilities");
+const { getMovies, writeMovies } = require("../sfUtilities");
 
 const moviesRouter = express.Router();
 
@@ -60,7 +55,7 @@ moviesRouter.post(
         movies.push({
           ...req.body,
           IMDBID: uniqid(),
-          // image: req.file.path, // THIS IS GOING TO BE THE CLOUDINARY URL
+          image: req.file.path, // THIS IS GOING TO BE THE CLOUDINARY URL
           reviews: [],
         });
         await writeMovies(movies);
@@ -75,6 +70,7 @@ moviesRouter.post(
   }
 );
 
+// GET ALL MOVIES
 moviesRouter.get("/", async (req, res, next) => {
   try {
     const movies = await getMovies();
