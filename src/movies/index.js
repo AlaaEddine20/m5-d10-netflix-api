@@ -1,21 +1,48 @@
 const express = require("express");
+const multer = require("multer");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("../cloudinary");
 const { check, validationResult } = require("express-validator");
 const uniqid = require("uniqid");
-const axios = require("axios");
-const { join } = require("path");
+const path = require("path");
 
+// ROUTES FROM FS UTILITIES
 const { getMovies, writeMovies } = require("../sfUtilities");
 
 const moviesRouter = express.Router();
-// const moviesPath = join(__dirname, "movies.json");
 
+// FORM VALIDATION
+const moviesValidator = [
+  check("title").exists().withMessage("Title of the movie is required"),
+  check("year").exists().withMessage("Realease years is required").isInt(),
+  check("type").exists().withMessage("Type of movie required!"),
+];
+
+// IMAGE VALIDATION
+const imageValidator = check("image")
+  .custom((value, { req }) => {
+    return req.file.mimetype === "image/png";
+  })
+  .withMessage("Only images accepted");
+
+// STORAGE
+const storage = new CloudinaryStorage({
+  cloudinary, // USE MY CREDENTIALS (IN THE .ENV FILE)
+  params: {
+    // VARIOUS OPTIONS
+    folder: "netflix-clone", // SAVE IN THIS FOLDER IN CLOUDINARY
+  },
+});
+
+// TELL MULTER WHATEVER IT COMES FROM THE REQ SAVE IT IN THIS STORAGE
+const cloudinaryStorage = multer({ storage: storage });
+
+// POST A MOVIE WITH AN IMAGE
 moviesRouter.post(
-  "/",
-  [
-    check("Title").exists().withMessage("Title of the movie is required"),
-    check("Year").exists().withMessage("Realease years is required").isInt(),
-    check("Type").exists().withMessage("Type of movie required!"),
-  ],
+  "/upload",
+  cloudinaryStorage.single("image"), // MULTER + MULTER STORAGE CLOUDINARY
+  moviesValidator,
+  imageValidator,
   async (req, res, next) => {
     try {
       const errors = validationResult(req);
@@ -30,10 +57,13 @@ moviesRouter.post(
         movies.push({
           ...req.body,
           IMDBID: uniqid(),
+          image: req.file.path, // THIS IS GOING TO BE THE CLOUDINARY URL
           reviews: [],
         });
         await writeMovies(movies);
-        res.status(200).send({ message: "Created" });
+        res.status(200).send({
+          message: `${req.body.title} added to the database successfully!`,
+        });
       }
     } catch (error) {
       console.log(error);

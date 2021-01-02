@@ -13,11 +13,6 @@ const server = express();
 
 const port = process.env.PORT || 4004;
 
-const loggerMiddleware = (req, res, next) => {
-  console.log(`Logged ${req.url} ${req.method} -- ${new Date()}`);
-  next();
-};
-
 const whiteList =
   process.env.NODE_ENV === "production"
     ? [process.env.FE_URL_PROD]
