@@ -1,9 +1,17 @@
 [
   {
-    "title": "rocky",
-    "year": "1976",
-    "type": "drammatic",
-    "IMDBID": "3ee42gbv0kjg3jjxa",
-    "reviews": []
+    "title": "test movie",
+    "year": 2021,
+    "type": "movie",
+    "IMDBID": "3ee42gcrwkjg62wmj",
+    "reviews": [],
+    "review": [
+      {
+        "comment": "test review",
+        "rate": 5,
+        "_id": "3ee42gc6kkjg66uc0",
+        "createdAt": "2021-01-02T20:40:02.063Z"
+      }
+    ]
   }
 ]

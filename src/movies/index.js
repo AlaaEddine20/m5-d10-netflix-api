@@ -4,10 +4,13 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../cloudinary");
 const { check, validationResult } = require("express-validator");
 const uniqid = require("uniqid");
-const path = require("path");
-
 // ROUTES FROM FS UTILITIES
-const { getMovies, writeMovies } = require("../sfUtilities");
+const {
+  getMovies,
+  writeMovies,
+  writeReviews,
+  getReviews,
+} = require("../sfUtilities");
 
 const moviesRouter = express.Router();
 
@@ -42,7 +45,7 @@ moviesRouter.post(
   "/upload",
   cloudinaryStorage.single("image"), // MULTER + MULTER STORAGE CLOUDINARY
   moviesValidator,
-  imageValidator,
+  // imageValidator,
   async (req, res, next) => {
     try {
       const errors = validationResult(req);
@@ -57,7 +60,7 @@ moviesRouter.post(
         movies.push({
           ...req.body,
           IMDBID: uniqid(),
-          image: req.file.path, // THIS IS GOING TO BE THE CLOUDINARY URL
+          // image: req.file.path, // THIS IS GOING TO BE THE CLOUDINARY URL
           reviews: [],
         });
         await writeMovies(movies);
@@ -92,6 +95,27 @@ moviesRouter.get("/", async (req, res, next) => {
   }
 });
 
+// DELETE MOVIE
+moviesRouter.delete("/:elementId/", async (req, res, next) => {
+  try {
+    const movies = await getMovies();
+    const movieFound = movies.find(
+      (movie) => movie.IMDBID === req.params.elementId
+    );
+    if (movieFound) {
+      const filteredMovies = movies.filter(
+        (movie) => movie.IMDBID !== req.params.elementId
+      );
+      await writeMovies(filteredMovies);
+      res.status(204).send();
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+// POST REVIEW
 moviesRouter.post(
   "/:elementId/reviews",
   [
@@ -102,18 +126,18 @@ moviesRouter.post(
     try {
       const errors = validationResult(req);
       const movies = await getMovies();
-      const movieFound = movies.find(
+      const movieIndex = movies.findIndex(
         (movie) => movie.IMDBID === req.params.elementId
       );
 
-      if (movieFound) {
-        movies[movieFound].reviews.push({
+      if (movieIndex !== -1) {
+        movies[movieIndex].reviews.push({
           ...req.body,
           _id: uniqid(),
           createdAt: new Date(),
         });
         await writeMovies(movies);
-        res.status(201).send(movies);
+        res.status(201).send("Review posted successfully");
       } else {
         const err = new Error();
         err.message = errors;
@@ -127,4 +151,25 @@ moviesRouter.post(
   }
 );
 
+// DELETE REVIEW
+moviesRouter.delete("/:elementId/reviews/:reviewId", async (req, res, next) => {
+  try {
+    const movies = await getMovies();
+    const movieIndex = movies.findIndex(
+      (movie) => movie.IMDBID === req.params.elementId
+    );
+
+    if (movieIndex !== -1) {
+      const filteredReviews = movies[movieIndex].reviews.filter(
+        (review) => review._id !== req.params.reviewId
+      );
+      movies[movieIndex].reviews = filteredReviews;
+      await writeMovies(movies);
+      res.status(204).send({ message: "The review has been deleted" });
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
 module.exports = moviesRouter;

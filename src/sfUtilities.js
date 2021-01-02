@@ -23,6 +23,6 @@ const writeDB = async (filePath, fileContent) => {
 module.exports = {
   getMovies: async () => readDB(moviesPath),
   writeMovies: async (moviesData) => writeDB(moviesPath, moviesData),
-  getReviews: async () => readDB(reviewsPath),
-  writeReviews: async (reviewsData) => writeDB(reviewsPath, reviewsData),
+  // getReviews: async () => readDB(reviewsPath),
+  // writeReviews: async (reviewsData) => writeDB(reviewsPath, reviewsData),
 };
